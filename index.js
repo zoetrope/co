@@ -120,6 +120,7 @@ function toThunk(obj, ctx) {
   if (isGeneratorFunction(obj)) obj = obj.call(ctx);
   if (isGenerator(obj)) fn = co(obj);
   if (isPromise(obj)) fn = promiseToThunk(obj);
+  if (isObservable(obj)) fn = observableToThunk(obj);
   return fn;
 }
 
@@ -301,4 +302,32 @@ function error(err) {
   setImmediate(function(){
     throw err;
   });
+}
+
+/**
+ * Convert `Rx.Observable` to a thunk.
+ *
+ * @param {Object} Rx.Observable
+ * @return {Function}
+ * @api private
+ */
+
+function observableToThunk(observable) {
+    return function(fn){
+        observable.subscribe(function(res) {
+            fn(null, res);
+        }, fn);
+    }
+}
+
+/**
+ * Check if `obj` is a Rx.Observable.
+ *
+ * @param {Object} obj
+ * @return {Boolean}
+ * @api private
+ */
+
+function isObservable(obj) {
+    return obj && 'function' == typeof obj.subscribe;
 }
