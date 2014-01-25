@@ -314,11 +314,17 @@ function error(err) {
 
 function observableToThunk(observable) {
     return function(fn){
-        observable.subscribe(function(res) {
-            fn(null, res);
-        }, fn);
+        var d = observable.subscribe(function(res) {
+                d.dispose();
+                fn(null, res);
+            },
+            function(err) {
+                d.dispose();
+                fn(err);
+            });
     }
 }
+
 
 /**
  * Check if `obj` is a Rx.Observable.
